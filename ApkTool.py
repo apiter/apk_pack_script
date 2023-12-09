@@ -3,6 +3,7 @@ import os
 import shutil
 import argparse
 from subprocess import Popen, PIPE
+from configparser import ConfigParser
 
 import sys
 import importlib
@@ -11,31 +12,18 @@ importlib.reload(sys)
 
 
 class ApkTool:
-    def __init__(self, keystore=None, password=None, alias=None):
+    def __init__(self):
         if sys.platform == 'win32':
             self.file_separator = '\\'
         else:
             self.file_separator = '/'
-        path = ''
-        if hasattr(sys, '_MEIPASS'):
-            path = sys._MEIPASS + self.file_separator
-        self.apk_tool_jar = path + 'apktool_2.9.1.jar'
-        self.aapt = path + 'aapt.exe'
-        self.objdump_x86 = path + 'objdump_x86.exe'
-        self.objdump_arm = path + 'objdump_arm.exe'
-        if keystore is None:
-            self.keystore = path + 'test_abc123'
-        else:
-            self.keystore = keystore
-        if password is None:
-            self.password = 'abc123'
-        else:
-            self.password = password
-        if alias is None:
-            self.alias = 'abc123'
-        else:
-            self.alias = alias
-        self.cur_apk = {}
+        config = ConfigParser()
+        config.read("config.ini")
+        self.apk_tool_jar = config.get("apktool", "PATH")
+        self.aapt = config.get("aapt", "PATH")
+        self.keystore = config.get("keystore", "PATH")
+        self.password = config.get("keystore", "PASSWORD")
+        self.alias = config.get("keystore", "ALIAS")
         return
 
     def unpack(self, apk, path):
@@ -175,7 +163,7 @@ def main():
 
     if args.analyse is not None:
         if value_map['inapk'] is None:
-            print('需要指定输入游戏包，现在分析当前目录下所有的apk文件')
+            print('需要指定输入游戏包, 现在分析当前目录下所有的apk文件')
             for file in os.listdir(os.curdir):
                 if os.path.isdir(file):
                     continue
